@@ -4,6 +4,15 @@ PyInstaller로 패키징할 때 사용하는 런처 스크립트
 """
 import os
 import sys
+import webbrowser
+import threading
+import time
+
+
+def open_browser():
+    """서버 시작 후 브라우저 자동 열기"""
+    time.sleep(3)  # 서버 시작 대기
+    webbrowser.open('http://localhost:8501')
 
 def get_base_path():
     """PyInstaller로 빌드된 경우와 일반 실행 경우 모두 지원"""
@@ -63,6 +72,11 @@ def main():
         "--browser.gatherUsageStats=false",
         "--server.fileWatcherType=none",
     ]
+
+    # 브라우저 자동 열기 (별도 스레드)
+    browser_thread = threading.Thread(target=open_browser)
+    browser_thread.daemon = True
+    browser_thread.start()
 
     try:
         sys.exit(stcli.main())
