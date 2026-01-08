@@ -243,9 +243,30 @@ class SimpleDownloaderApp(ctk.CTk):
                 },
             }
 
+        elif platform == 'youtube':
+            # 유튜브 전용 옵션 (2024년 이후 차단 우회)
+            return {
+                **base_opts,
+                'http_headers': {
+                    'User-Agent': user_agent,
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                    'Accept-Language': 'en-US,en;q=0.5',
+                },
+                'extractor_args': {
+                    'youtube': {
+                        'player_client': ['android', 'web'],
+                    }
+                },
+            }
+
         else:
-            # 유튜브 및 기타
-            return base_opts
+            # 기타 플랫폼
+            return {
+                **base_opts,
+                'http_headers': {
+                    'User-Agent': user_agent,
+                },
+            }
 
     def run_process(self, url):
         """실제 다운로드 및 캡처 로직"""
