@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  trend-analyzer:
+    build: .
+    ports:
+      - "8501:8501"
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    # Chrome을 위한 공유 메모리 증가
+    shm_size: '2gb'
+    # 필요시 볼륨 마운트
+    # volumes:
+    #   - ./data:/app/data
