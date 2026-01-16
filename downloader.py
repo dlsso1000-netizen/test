@@ -171,15 +171,16 @@ class SimpleDownloaderApp(ctk.CTk):
         """선택한 품질에 따른 format 문자열 반환"""
         quality = self.quality_var.get()
 
+        # bestvideo+bestaudio로 고화질 비디오와 오디오를 병합
         format_map = {
-            'best': 'best[ext=mp4]/best',
-            '1080p': 'best[height<=1080][ext=mp4]/best[height<=1080]',
-            '720p': 'best[height<=720][ext=mp4]/best[height<=720]',
-            '480p': 'best[height<=480][ext=mp4]/best[height<=480]',
-            '360p': 'best[height<=360][ext=mp4]/best[height<=360]',
-            'audio_only': 'bestaudio/best',
+            'best': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best',
+            '1080p': 'bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best[height<=1080]',
+            '720p': 'bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720]+bestaudio/best[height<=720]',
+            '480p': 'bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480]+bestaudio/best[height<=480]',
+            '360p': 'bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360]+bestaudio/best[height<=360]',
+            'audio_only': 'bestaudio[ext=m4a]/bestaudio/best',
         }
-        return format_map.get(quality, 'best')
+        return format_map.get(quality, 'bestvideo+bestaudio/best')
 
     def get_ydl_opts(self, platform):
         """플랫폼별 최적화된 yt-dlp 옵션 반환"""
@@ -190,6 +191,14 @@ class SimpleDownloaderApp(ctk.CTk):
         # 파일명 템플릿
         outtmpl = os.path.join(self.download_path, '%(title).80s_%(id)s.%(ext)s')
 
+        # 썸네일 후처리 (jpg로 변환)
+        postprocessors = []
+        if self.thumb_var.get():
+            postprocessors.append({
+                'key': 'FFmpegThumbnailsConvertor',
+                'format': 'jpg',
+            })
+
         # 공통 옵션
         base_opts = {
             'noplaylist': True,
@@ -197,8 +206,10 @@ class SimpleDownloaderApp(ctk.CTk):
             'ignoreerrors': True,
             'outtmpl': outtmpl,
             'format': self.get_format_string(),
+            'merge_output_format': 'mp4',  # 비디오+오디오 병합 시 mp4로 출력
             'progress_hooks': [self.update_progress],
             'writethumbnail': self.thumb_var.get(),
+            'postprocessors': postprocessors,
         }
 
         if platform == 'tiktok':
