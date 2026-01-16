@@ -13,3 +13,4 @@ validators>=0.22.0
 packaging>=23.0
 typing_extensions>=4.0.0
 pillow>=10.0.0
+pywebview>=4.0.0

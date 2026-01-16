@@ -1,87 +1,122 @@
 """
-Pro Roasting Logger - EXE 런처
-PyInstaller로 패키징할 때 사용하는 런처 스크립트
+Pro Roasting Logger - EXE 런처 (Native Window 버전)
+pywebview를 사용하여 브라우저 없이 앱 창으로 실행
 """
 import os
 import sys
-import webbrowser
 import threading
 import time
+import socket
 
-
-def open_browser():
-    """서버 시작 후 브라우저 자동 열기"""
-    time.sleep(3)  # 서버 시작 대기
-    webbrowser.open('http://localhost:8501')
 
 def get_base_path():
     """PyInstaller로 빌드된 경우와 일반 실행 경우 모두 지원"""
     if getattr(sys, 'frozen', False):
-        # PyInstaller로 빌드된 exe 실행 시
         return sys._MEIPASS
     else:
-        # 일반 Python 스크립트 실행 시
         return os.path.dirname(os.path.abspath(__file__))
 
 
-def setup_environment():
-    """실행 환경 설정"""
-    base_path = get_base_path()
+def find_free_port():
+    """사용 가능한 포트 찾기"""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(('', 0))
+        return s.getsockname()[1]
 
-    # 환경 변수 설정 (Streamlit이 필요로 하는 설정들)
+
+def wait_for_server(port, timeout=30):
+    """서버가 시작될 때까지 대기"""
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.connect(('localhost', port))
+                return True
+        except ConnectionRefusedError:
+            time.sleep(0.5)
+    return False
+
+
+def run_streamlit(port, script_path):
+    """Streamlit 서버 실행"""
     os.environ['STREAMLIT_SERVER_HEADLESS'] = 'true'
-    os.environ['STREAMLIT_SERVER_PORT'] = '8501'
+    os.environ['STREAMLIT_SERVER_PORT'] = str(port)
     os.environ['STREAMLIT_BROWSER_GATHER_USAGE_STATS'] = 'false'
     os.environ['STREAMLIT_GLOBAL_DEVELOPMENT_MODE'] = 'false'
+    os.environ['STREAMLIT_SERVER_FILE_WATCHER_TYPE'] = 'none'
 
-    # 임시 디렉토리 설정 (exe 실행 시 필요)
-    if getattr(sys, 'frozen', False):
-        # Windows에서 사용자별 임시 폴더 사용
-        temp_dir = os.path.join(os.environ.get('TEMP', os.environ.get('TMP', '.')), 'RoastingLogger')
-        os.makedirs(temp_dir, exist_ok=True)
-        os.environ['STREAMLIT_SERVER_FILE_WATCHER_TYPE'] = 'none'
-
-    return base_path
-
-
-def main():
-    """메인 실행 함수"""
-    base_path = setup_environment()
-
-    # Streamlit CLI 임포트
     from streamlit.web import cli as stcli
 
-    # 메인 스크립트 경로
-    script_path = os.path.join(base_path, 'roasting_log.py')
-
-    # 스크립트 파일 존재 확인
-    if not os.path.exists(script_path):
-        print(f"오류: 스크립트 파일을 찾을 수 없습니다: {script_path}")
-        print(f"현재 base_path: {base_path}")
-        print(f"디렉토리 내용: {os.listdir(base_path)}")
-        input("아무 키나 누르세요...")
-        sys.exit(1)
-
-    # sys.argv 설정 (Streamlit CLI가 필요로 함)
     sys.argv = [
         "streamlit",
         "run",
         script_path,
+        f"--server.port={port}",
         "--global.developmentMode=false",
         "--server.headless=true",
         "--browser.gatherUsageStats=false",
         "--server.fileWatcherType=none",
     ]
 
-    # 브라우저 자동 열기 (별도 스레드)
-    browser_thread = threading.Thread(target=open_browser)
-    browser_thread.daemon = True
-    browser_thread.start()
+    stcli.main()
+
+
+def main():
+    """메인 실행 함수"""
+    base_path = get_base_path()
+    script_path = os.path.join(base_path, 'roasting_log.py')
+
+    # 스크립트 파일 존재 확인
+    if not os.path.exists(script_path):
+        print(f"오류: 스크립트 파일을 찾을 수 없습니다: {script_path}")
+        input("아무 키나 누르세요...")
+        sys.exit(1)
+
+    # 포트 설정
+    port = 8501
+
+    # Streamlit 서버를 별도 스레드에서 실행
+    server_thread = threading.Thread(target=run_streamlit, args=(port, script_path), daemon=True)
+    server_thread.start()
+
+    # 서버 시작 대기
+    print("서버 시작 중...")
+    if not wait_for_server(port):
+        print("서버 시작 시간 초과")
+        input("아무 키나 누르세요...")
+        sys.exit(1)
+
+    print("앱 창 열기...")
 
     try:
-        sys.exit(stcli.main())
+        import webview
+
+        # 네이티브 창으로 앱 열기
+        window = webview.create_window(
+            'Pro Roasting Logger',
+            f'http://localhost:{port}',
+            width=1400,
+            height=900,
+            resizable=True,
+            min_size=(800, 600)
+        )
+
+        webview.start()
+
+    except ImportError:
+        # pywebview가 없으면 브라우저로 대체
+        print("pywebview가 설치되지 않아 브라우저로 엽니다.")
+        import webbrowser
+        webbrowser.open(f'http://localhost:{port}')
+
+        # 서버 유지
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            pass
     except Exception as e:
-        print(f"실행 중 오류 발생: {e}")
+        print(f"오류 발생: {e}")
         import traceback
         traceback.print_exc()
         input("아무 키나 누르세요...")

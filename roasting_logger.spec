@@ -19,6 +19,12 @@ plotly_datas, plotly_binaries, plotly_hiddenimports = collect_all('plotly')
 # Pandas 관련 파일 수집
 pandas_datas = collect_data_files('pandas')
 
+# pywebview 관련 파일 수집
+try:
+    webview_datas, webview_binaries, webview_hiddenimports = collect_all('webview')
+except:
+    webview_datas, webview_binaries, webview_hiddenimports = [], [], []
+
 # 추가 hidden imports
 additional_hiddenimports = [
     'streamlit',
@@ -60,23 +66,31 @@ additional_hiddenimports = [
     'importlib_metadata',
     'typing_extensions',
     'drivers',  # 우리가 만든 드라이버 모듈
+    'webview',  # pywebview
+    'webview.platforms',
+    'webview.platforms.winforms',
+    'webview.platforms.edgechromium',
+    'clr',
+    'clr_loader',
+    'pythonnet',
 ]
 
 # 모든 hidden imports 합치기
 all_hiddenimports = list(set(
     streamlit_hiddenimports +
     plotly_hiddenimports +
+    webview_hiddenimports +
     additional_hiddenimports
 ))
 
 # 모든 datas 합치기
-all_datas = streamlit_datas + plotly_datas + pandas_datas + [
+all_datas = streamlit_datas + plotly_datas + pandas_datas + webview_datas + [
     ('roasting_log.py', '.'),
     ('drivers.py', '.'),
 ]
 
 # 모든 binaries 합치기
-all_binaries = streamlit_binaries + plotly_binaries
+all_binaries = streamlit_binaries + plotly_binaries + webview_binaries
 
 a = Analysis(
     ['launcher.py'],
@@ -110,7 +124,7 @@ exe = EXE(
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=True,  # 디버깅 시 True, 배포 시 False로 변경
+    console=False,  # 콘솔 창 숨김 (앱 창만 표시)
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
