@@ -4,6 +4,7 @@ pywebview를 사용하여 브라우저 없이 앱 창으로 실행
 """
 import os
 import sys
+import subprocess
 import threading
 import time
 import socket
@@ -15,13 +16,6 @@ def get_base_path():
         return sys._MEIPASS
     else:
         return os.path.dirname(os.path.abspath(__file__))
-
-
-def find_free_port():
-    """사용 가능한 포트 찾기"""
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(('', 0))
-        return s.getsockname()[1]
 
 
 def wait_for_server(port, timeout=30):
@@ -37,30 +31,6 @@ def wait_for_server(port, timeout=30):
     return False
 
 
-def run_streamlit(port, script_path):
-    """Streamlit 서버 실행"""
-    os.environ['STREAMLIT_SERVER_HEADLESS'] = 'true'
-    os.environ['STREAMLIT_SERVER_PORT'] = str(port)
-    os.environ['STREAMLIT_BROWSER_GATHER_USAGE_STATS'] = 'false'
-    os.environ['STREAMLIT_GLOBAL_DEVELOPMENT_MODE'] = 'false'
-    os.environ['STREAMLIT_SERVER_FILE_WATCHER_TYPE'] = 'none'
-
-    from streamlit.web import cli as stcli
-
-    sys.argv = [
-        "streamlit",
-        "run",
-        script_path,
-        f"--server.port={port}",
-        "--global.developmentMode=false",
-        "--server.headless=true",
-        "--browser.gatherUsageStats=false",
-        "--server.fileWatcherType=none",
-    ]
-
-    stcli.main()
-
-
 def main():
     """메인 실행 함수"""
     base_path = get_base_path()
@@ -72,15 +42,56 @@ def main():
         input("아무 키나 누르세요...")
         sys.exit(1)
 
-    # 포트 설정
     port = 8501
 
-    # Streamlit 서버를 별도 스레드에서 실행
-    server_thread = threading.Thread(target=run_streamlit, args=(port, script_path), daemon=True)
-    server_thread.start()
+    # 환경 변수 설정
+    env = os.environ.copy()
+    env['STREAMLIT_SERVER_HEADLESS'] = 'true'
+    env['STREAMLIT_SERVER_PORT'] = str(port)
+    env['STREAMLIT_BROWSER_GATHER_USAGE_STATS'] = 'false'
+    env['STREAMLIT_GLOBAL_DEVELOPMENT_MODE'] = 'false'
+    env['STREAMLIT_SERVER_FILE_WATCHER_TYPE'] = 'none'
+
+    # Streamlit을 subprocess로 실행
+    print("서버 시작 중...")
+
+    if getattr(sys, 'frozen', False):
+        # exe로 실행 시 - Python을 직접 호출할 수 없으므로 다른 방식 사용
+        # streamlit 모듈을 직접 import하여 별도 프로세스처럼 동작
+        import multiprocessing
+        multiprocessing.freeze_support()
+
+        def run_streamlit_process():
+            os.environ.update(env)
+            from streamlit.web import cli as stcli
+            sys.argv = [
+                "streamlit", "run", script_path,
+                f"--server.port={port}",
+                "--global.developmentMode=false",
+                "--server.headless=true",
+                "--browser.gatherUsageStats=false",
+                "--server.fileWatcherType=none",
+            ]
+            stcli.main()
+
+        server_process = multiprocessing.Process(target=run_streamlit_process)
+        server_process.daemon = True
+        server_process.start()
+    else:
+        # 개발 환경에서는 subprocess 사용
+        server_process = subprocess.Popen(
+            [sys.executable, "-m", "streamlit", "run", script_path,
+             f"--server.port={port}",
+             "--global.developmentMode=false",
+             "--server.headless=true",
+             "--browser.gatherUsageStats=false",
+             "--server.fileWatcherType=none"],
+            env=env,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
 
     # 서버 시작 대기
-    print("서버 시작 중...")
     if not wait_for_server(port):
         print("서버 시작 시간 초과")
         input("아무 키나 누르세요...")
@@ -109,7 +120,6 @@ def main():
         import webbrowser
         webbrowser.open(f'http://localhost:{port}')
 
-        # 서버 유지
         try:
             while True:
                 time.sleep(1)
@@ -120,8 +130,17 @@ def main():
         import traceback
         traceback.print_exc()
         input("아무 키나 누르세요...")
-        sys.exit(1)
+    finally:
+        # 프로세스 종료
+        try:
+            if hasattr(server_process, 'terminate'):
+                server_process.terminate()
+        except:
+            pass
 
 
 if __name__ == "__main__":
+    # multiprocessing freeze support (Windows exe용)
+    import multiprocessing
+    multiprocessing.freeze_support()
     main()
