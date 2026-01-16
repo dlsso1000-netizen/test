@@ -171,14 +171,14 @@ class SimpleDownloaderApp(ctk.CTk):
         """선택한 품질에 따른 format 문자열 반환"""
         quality = self.quality_var.get()
 
-        # bestvideo+bestaudio로 고화질 비디오와 오디오를 병합
+        # ext 제한 없이 최고 화질 선택 (FFmpeg가 mp4로 변환)
         format_map = {
-            'best': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best',
-            '1080p': 'bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best[height<=1080]',
-            '720p': 'bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720]+bestaudio/best[height<=720]',
-            '480p': 'bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480]+bestaudio/best[height<=480]',
-            '360p': 'bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360]+bestaudio/best[height<=360]',
-            'audio_only': 'bestaudio[ext=m4a]/bestaudio/best',
+            'best': 'bestvideo+bestaudio/best',
+            '1080p': 'bestvideo[height<=1080]+bestaudio/best[height<=1080]',
+            '720p': 'bestvideo[height<=720]+bestaudio/best[height<=720]',
+            '480p': 'bestvideo[height<=480]+bestaudio/best[height<=480]',
+            '360p': 'bestvideo[height<=360]+bestaudio/best[height<=360]',
+            'audio_only': 'bestaudio/best',
         }
         return format_map.get(quality, 'bestvideo+bestaudio/best')
 
