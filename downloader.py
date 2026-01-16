@@ -255,7 +255,7 @@ class SimpleDownloaderApp(ctk.CTk):
             }
 
         elif platform == 'youtube':
-            # 유튜브 전용 옵션 (쿠키 사용으로 차단 우회)
+            # 유튜브 전용 옵션
             return {
                 **base_opts,
                 'http_headers': {
@@ -263,7 +263,6 @@ class SimpleDownloaderApp(ctk.CTk):
                     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
                     'Accept-Language': 'en-US,en;q=0.5',
                 },
-                'cookiesfrombrowser': ('chrome',),  # 크롬 브라우저 쿠키 사용
                 'extractor_args': {
                     'youtube': {
                         'player_client': ['android', 'web'],
