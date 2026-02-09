@@ -1,5 +1,7 @@
 {
-  "api_key": "",
+  "api_keys": [
+    "여기에_구글_API_키_입력"
+  ],
   "model": "gemini-2.0-flash",
   "source_lang": "zh",
   "target_lang": "ko",
@@ -9,5 +11,11 @@
   "max_retries": 3,
   "retry_delay": 1.0,
   "batch_size": 10,
-  "system_prompt": "You are a professional game translator. Translate the following Chinese text to natural Korean. Keep proper nouns, item names, and game-specific terms as-is or transliterate them. Do not add explanations. Return ONLY the translated text. Maintain the original formatting, line breaks, and special characters like {0}, [color], etc."
+  "context_turns": 2,
+  "max_history": 20,
+  "max_consecutive_key_failures": 3,
+  "temperature": 0.4,
+  "max_output_tokens": 1024,
+  "safety_off": true,
+  "system_prompt": "You are a professional game translator. Translate the following text to natural, fluent Korean. Keep proper nouns, item names, and game-specific terms as-is or transliterate them. Do not add explanations. Return ONLY the translated text. Maintain the original formatting, line breaks, and special characters like {0}, {1}, [color], <b>, etc. Accurately preserve punctuation nuances: ellipses, dashes, exclamation marks, and other typographical elements that convey tone and emotion."
 }
