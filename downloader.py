@@ -1,11 +1,28 @@
-import customtkinter as ctk
-import yt_dlp
 import os
 import subprocess
 import threading
 from datetime import datetime
-from tkinter import filedialog, messagebox
 import shutil
+import sys
+
+try:
+    import customtkinter as ctk
+    from tkinter import filedialog, messagebox
+except ImportError:
+    import tkinter as tk
+    from tkinter import messagebox as mb
+    root = tk.Tk()
+    root.withdraw()
+    mb.showerror("모듈 없음", "customtkinter가 설치되어 있지 않습니다.\n\ncmd에서 실행:\npip install customtkinter")
+    sys.exit(1)
+
+try:
+    import yt_dlp
+except ImportError:
+    root = ctk.CTk()
+    root.withdraw()
+    messagebox.showerror("모듈 없음", "yt-dlp가 설치되어 있지 않습니다.\n\ncmd에서 실행:\npip install yt-dlp")
+    sys.exit(1)
 
 # 테마 설정
 ctk.set_appearance_mode("Dark")
@@ -291,5 +308,14 @@ class SimpleDownloaderApp(ctk.CTk):
         self.log(f"캡처 완료! ({len(os.listdir(folder))}장)")
 
 if __name__ == "__main__":
-    app = SimpleDownloaderApp()
-    app.mainloop()
+    try:
+        app = SimpleDownloaderApp()
+        app.mainloop()
+    except Exception as e:
+        import traceback
+        error_detail = traceback.format_exc()
+        try:
+            messagebox.showerror("실행 오류", f"프로그램 실행 중 오류 발생:\n\n{error_detail}")
+        except:
+            print(error_detail)
+            input("엔터를 누르면 종료됩니다...")
