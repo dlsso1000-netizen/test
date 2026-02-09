@@ -1,0 +1,14 @@
+{
+  "$schema": "https://raw.githubusercontent.com/bbepis/XUnity.AutoTranslator/master/endpoint-schema.json",
+  "Name": "GeminiTranslator",
+  "Endpoint": "http://127.0.0.1:5000/translate",
+  "HttpMethod": "GET",
+  "Parameterize": true,
+  "Parameters": {
+    "text": "{untranslatedText}",
+    "from": "{fromLanguage}",
+    "to": "{toLanguage}"
+  },
+  "ResponsePath": "",
+  "BlockUntilResponse": true
+}
