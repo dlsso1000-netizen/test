@@ -274,7 +274,7 @@ class SimpleDownloaderApp(ctk.CTk):
             self.log(f"오류: {error_msg}")
             if "Sign in to confirm" in error_msg or "bot" in error_msg.lower():
                 self.log("💡 팁: 위 '쿠키' 옵션에서 브라우저를 선택한 뒤 다시 시도하세요!")
-                self.log("💡 해당 브라우저에서 YouTube에 로그인되어 있어야 합니다.")
+                self.log("💡 로그인 안 되어있어도 괜찮습니다 (브라우저 쿠키만 있으면 됨)")
             elif "tiktok" in error_msg.lower():
                 self.log("💡 팁: pip install -U yt-dlp 명령어로 업데이트 하세요.")
 
