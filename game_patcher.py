@@ -31,6 +31,7 @@ SCRIPT_DIR = Path(__file__).parent.resolve()
 CONFIG_PATH = SCRIPT_DIR / "config.json"
 
 BEPINEX_RELEASES_API = "https://api.github.com/repos/BepInEx/BepInEx/releases/latest"
+BEPINEX_PRERELEASE_API = "https://api.github.com/repos/BepInEx/BepInEx/releases"
 XUNITY_RELEASES_API = "https://api.github.com/repos/bbepis/XUnity.AutoTranslator/releases/latest"
 
 # ============================================================
@@ -135,37 +136,50 @@ def download_with_progress(url, desc="다운로드"):
 # BepInEx 설치
 # ============================================================
 def get_bepinex_download_url(engine_type, arch):
-    """GitHub API에서 적합한 BepInEx 릴리즈 URL 가져오기."""
+    """
+    GitHub API에서 적합한 BepInEx 릴리즈 URL 가져오기.
+
+    실제 릴리즈 파일명 형식:
+      - 안정판 (5.x, Mono용): BepInEx_win_x64_5.4.23.5.zip
+      - 프리릴리즈 (6.x, IL2CPP용): BepInEx-Unity.IL2CPP-win-x64-6.0.0-be.x.zip
+
+    Mono 게임 → 최신 안정판 (5.x)
+    IL2CPP 게임 → 프리릴리즈 (6.x) 에서 다운로드
+    """
+    arch_str = arch  # "x64" or "x86"
+
     try:
+        if engine_type == "il2cpp":
+            # IL2CPP → 프리릴리즈(6.x)에서 찾기
+            print("  [INFO] IL2CPP 게임 → BepInEx 6.x (프리릴리즈) 검색 중...")
+            resp = requests.get(BEPINEX_PRERELEASE_API, timeout=15)
+            resp.raise_for_status()
+            releases = resp.json()
+
+            for release in releases:
+                for asset in release.get("assets", []):
+                    name = asset["name"]
+                    name_lower = name.lower()
+                    # 패턴: BepInEx-Unity.IL2CPP-win-x64-...zip
+                    # 또는: BepInEx_Unity.IL2CPP_win_x64_...zip
+                    if name_lower.endswith(".zip") and "il2cpp" in name_lower and "win" in name_lower and arch_str in name_lower:
+                        return asset["browser_download_url"], release["tag_name"]
+
+            # IL2CPP 전용을 못 찾으면, 안정판에서 일반 Windows 빌드 시도
+            print("  [INFO] IL2CPP 전용 빌드를 찾지 못해 안정판으로 시도...")
+
+        # Mono 또는 IL2CPP 폴백 → 안정판 (5.x)
         resp = requests.get(BEPINEX_RELEASES_API, timeout=15)
         resp.raise_for_status()
         release = resp.json()
 
-        # 패턴 매칭으로 적합한 에셋 찾기
-        target_patterns = []
-        if engine_type == "il2cpp":
-            if arch == "x64":
-                target_patterns = ["il2cpp_x64", "IL2CPP-win-x64", "il2cpp-win-x64"]
-            else:
-                target_patterns = ["il2cpp_x86", "IL2CPP-win-x86", "il2cpp-win-x86"]
-        else:  # mono
-            if arch == "x64":
-                target_patterns = ["mono_x64", "Mono-win-x64", "mono-win-x64", "x64"]
-            else:
-                target_patterns = ["mono_x86", "Mono-win-x86", "mono-win-x86", "x86"]
-
+        # 실제 파일명: BepInEx_win_x64_5.4.23.5.zip
         for asset in release.get("assets", []):
-            name = asset["name"].lower()
-            if name.endswith(".zip"):
-                for pattern in target_patterns:
-                    if pattern.lower() in name:
-                        return asset["browser_download_url"], release["tag_name"]
-
-        # 정확한 매칭 실패 시 넓은 범위로 재시도
-        for asset in release.get("assets", []):
-            name = asset["name"].lower()
-            if name.endswith(".zip") and "win" in name:
-                if engine_type in name or (engine_type == "mono" and "il2cpp" not in name):
+            name = asset["name"]
+            name_lower = name.lower()
+            if name_lower.endswith(".zip") and "win" in name_lower and arch_str in name_lower:
+                # patcher 등 제외
+                if "patcher" not in name_lower:
                     return asset["browser_download_url"], release["tag_name"]
 
     except Exception as e:
@@ -210,21 +224,30 @@ def install_bepinex(game_path, engine_type, arch):
 # ============================================================
 # XUnity.AutoTranslator 설치
 # ============================================================
-def get_xunity_download_url():
-    """XUnity.AutoTranslator 최신 릴리즈 URL."""
+def get_xunity_download_url(engine_type="mono"):
+    """
+    XUnity.AutoTranslator 최신 릴리즈 URL.
+
+    실제 파일명:
+      - Mono용: XUnity.AutoTranslator-BepInEx-5.5.1.zip
+      - IL2CPP용: XUnity.AutoTranslator-BepInEx-IL2CPP-5.5.1.zip
+    """
     try:
         resp = requests.get(XUNITY_RELEASES_API, timeout=15)
         resp.raise_for_status()
         release = resp.json()
 
-        for asset in release.get("assets", []):
-            name = asset["name"].lower()
-            if "bepinex" in name and name.endswith(".zip"):
-                return asset["browser_download_url"], release["tag_name"]
+        if engine_type == "il2cpp":
+            # IL2CPP용 먼저 찾기
+            for asset in release.get("assets", []):
+                name = asset["name"]
+                if name.endswith(".zip") and "BepInEx-IL2CPP" in name and "ResourceRedirector" not in name:
+                    return asset["browser_download_url"], release["tag_name"]
 
-        # BepInEx 특정 버전이 없으면 첫 번째 zip
+        # Mono용 또는 폴백
         for asset in release.get("assets", []):
-            if asset["name"].endswith(".zip"):
+            name = asset["name"]
+            if name.endswith(".zip") and "BepInEx" in name and "IL2CPP" not in name and "ResourceRedirector" not in name:
                 return asset["browser_download_url"], release["tag_name"]
 
     except Exception as e:
@@ -233,7 +256,7 @@ def get_xunity_download_url():
     return None, None
 
 
-def install_xunity(game_path):
+def install_xunity(game_path, engine_type="mono"):
     """XUnity.AutoTranslator를 BepInEx/plugins에 설치."""
     game_path = Path(game_path)
     plugins_dir = game_path / "BepInEx" / "plugins"
@@ -252,8 +275,8 @@ def install_xunity(game_path):
         if choice != "y":
             return True
 
-    print("\n  XUnity.AutoTranslator 다운로드 중...")
-    url, version = get_xunity_download_url()
+    print(f"\n  XUnity.AutoTranslator 다운로드 중... ({engine_type.upper()}용)")
+    url, version = get_xunity_download_url(engine_type)
     if not url:
         print("  [오류] 다운로드 URL을 찾을 수 없습니다.")
         print(f"  수동 다운로드: https://github.com/bbepis/XUnity.AutoTranslator/releases")
@@ -439,7 +462,7 @@ def one_click_patch():
 
     # 5. XUnity.AutoTranslator 설치
     print(f"\n[5] XUnity.AutoTranslator 설치")
-    xunity_ok = install_xunity(game_path)
+    xunity_ok = install_xunity(game_path, engine)
 
     # 6. 번역 설정
     print(f"\n[6] 번역 설정 적용")
