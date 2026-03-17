@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 420px;
+      min-height: 300px;
+      font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+      font-size: 13px;
+      color: #222;
+      background: #fff;
+    }
+    .header {
+      background: #cc0000;
+      color: #fff;
+      padding: 12px 16px;
+      font-size: 15px;
+      font-weight: bold;
+    }
+    .status {
+      padding: 8px 16px;
+      background: #f5f5f5;
+      color: #666;
+      font-size: 12px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .status.loading { color: #cc0000; }
+    .status.error { color: #d32f2f; background: #fce4ec; }
+
+    .video-info {
+      padding: 12px 16px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .video-title {
+      font-weight: bold;
+      font-size: 13px;
+      margin-bottom: 4px;
+      line-height: 1.3;
+    }
+    .video-meta { color: #666; font-size: 11px; }
+
+    .section {
+      padding: 10px 16px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .section-title {
+      font-weight: bold;
+      font-size: 13px;
+      margin-bottom: 8px;
+      color: #333;
+    }
+    .section-title .count {
+      color: #cc0000;
+      font-size: 14px;
+    }
+
+    .ad-item {
+      display: flex;
+      align-items: center;
+      padding: 4px 0;
+      font-size: 12px;
+    }
+    .ad-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: bold;
+      color: #fff;
+      margin-right: 8px;
+      min-width: 50px;
+      text-align: center;
+    }
+    .ad-badge.preroll { background: #f44336; }
+    .ad-badge.midroll { background: #ff9800; }
+    .ad-badge.postroll { background: #9e9e9e; }
+    .ad-badge.detected { background: #4caf50; }
+
+    .sponsor-item {
+      display: flex;
+      align-items: center;
+      padding: 4px 0;
+      font-size: 12px;
+    }
+    .sponsor-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: bold;
+      background: #7c4dff;
+      color: #fff;
+      margin-right: 8px;
+    }
+
+    .timeline {
+      padding: 10px 16px;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 11px;
+      background: #fafafa;
+    }
+    .timeline-bar {
+      letter-spacing: 1px;
+      color: #999;
+    }
+    .timeline-bar .ad { color: #f44336; font-weight: bold; }
+    .timeline-bar .sponsor { color: #7c4dff; font-weight: bold; }
+
+    .empty {
+      color: #999;
+      font-size: 12px;
+      padding: 4px 0;
+    }
+
+    .btn-refresh {
+      display: block;
+      width: calc(100% - 32px);
+      margin: 10px 16px;
+      padding: 8px;
+      background: #cc0000;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 13px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .btn-refresh:hover { background: #a00; }
+
+    .ad-now {
+      padding: 8px 16px;
+      background: #fff3e0;
+      border-left: 4px solid #ff9800;
+      font-weight: bold;
+      color: #e65100;
+      font-size: 12px;
+    }
+
+    .legend {
+      padding: 6px 16px;
+      font-size: 10px;
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">YouTube 광고 구간 탐지기</div>
+  <div class="status" id="status">데이터 로딩 중...</div>
+  <div id="ad-now-container"></div>
+  <div id="content"></div>
+  <button class="btn-refresh" id="refreshBtn">새로고침</button>
+  <script src="popup.js"></script>
+</body>
+</html>

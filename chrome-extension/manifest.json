@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "YouTube 광고 구간 탐지기",
+  "description": "YouTube 영상의 광고 구간(프리롤/미드롤/포스트롤)을 실시간으로 감지합니다.",
+  "version": "1.0",
+  "permissions": ["activeTab"],
+  "content_scripts": [
+    {
+      "matches": ["*://www.youtube.com/watch*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "48": "icon48.png"
+    }
+  },
+  "icons": {
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}
