@@ -155,8 +155,8 @@ class YouTubeAdDetectorApp:
         sponsors = []
         try:
             sponsors = get_sponsorblock_segments(video_id)
-        except Exception:
-            lines.append("[SponsorBlock 조회 실패]")
+        except Exception as e:
+            lines.append(f"[SponsorBlock 조회 실패: {e}]")
 
         # 결과 조합
         result = self._format_results(video_id, video_info, all_ads, sponsors, lines)

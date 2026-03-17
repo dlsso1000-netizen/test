@@ -304,10 +304,12 @@ def get_sponsorblock_segments(video_id: str) -> list[dict]:
                 "votes": seg.get("votes", 0),
             })
     except urllib.error.HTTPError as e:
-        if e.code != 404:
-            raise
-    except Exception:
-        pass
+        if e.code == 404:
+            pass  # 이 영상에 등록된 구간 없음
+        else:
+            raise RuntimeError(f"SponsorBlock 직접 API 오류 (HTTP {e.code})")
+    except urllib.error.URLError as e:
+        raise RuntimeError(f"SponsorBlock 연결 실패: {e.reason}")
 
     # 방법 2: 해시 기반 API (백업)
     if not segments:
@@ -338,10 +340,12 @@ def get_sponsorblock_segments(video_id: str) -> list[dict]:
                         "votes": seg.get("votes", 0),
                     })
         except urllib.error.HTTPError as e:
-            if e.code != 404:
-                raise
-        except Exception:
-            pass
+            if e.code == 404:
+                pass  # 등록된 구간 없음
+            else:
+                raise RuntimeError(f"SponsorBlock 해시 API 오류 (HTTP {e.code})")
+        except urllib.error.URLError as e:
+            raise RuntimeError(f"SponsorBlock 연결 실패: {e.reason}")
 
     return sorted(segments, key=lambda x: x["start_ms"])
 
