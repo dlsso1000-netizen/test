@@ -265,21 +265,6 @@ def extract_ad_slots_from_html(html: str, total_length_ms: int = 0) -> list[dict
 
 def get_sponsorblock_segments(video_id: str) -> list[dict]:
     """SponsorBlock API에서 스폰서/광고 구간을 가져옵니다."""
-    hash_prefix = hashlib.sha256(video_id.encode()).hexdigest()[:4]
-    url = f"https://sponsor.ajay.app/api/skipSegments/{hash_prefix}"
-
-    try:
-        req = urllib.request.Request(
-            url,
-            headers={"User-Agent": "YouTubeAdDetector/1.0"},
-        )
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-    except urllib.error.HTTPError as e:
-        if e.code == 404:
-            return []
-        raise
-
     category_labels = {
         "sponsor": "스폰서 광고",
         "selfpromo": "자기 홍보",
@@ -291,11 +276,20 @@ def get_sponsorblock_segments(video_id: str) -> list[dict]:
         "filler": "불필요한 구간",
     }
 
+    all_categories = list(category_labels.keys())
     segments = []
-    for entry in data:
-        if entry.get("videoID") != video_id:
-            continue
-        for seg in entry.get("segments", []):
+
+    # 방법 1: 직접 API (videoID로 직접 조회 - 더 정확함)
+    try:
+        cats = "&".join(f"category={c}" for c in all_categories)
+        url = f"https://sponsor.ajay.app/api/skipSegments?videoID={video_id}&{cats}"
+        req = urllib.request.Request(
+            url,
+            headers={"User-Agent": "YouTubeAdDetector/1.0"},
+        )
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        for seg in data:
             start_sec = seg["segment"][0]
             end_sec = seg["segment"][1]
             category = seg.get("category", "unknown")
@@ -309,6 +303,45 @@ def get_sponsorblock_segments(video_id: str) -> list[dict]:
                 "category_label": category_labels.get(category, category),
                 "votes": seg.get("votes", 0),
             })
+    except urllib.error.HTTPError as e:
+        if e.code != 404:
+            raise
+    except Exception:
+        pass
+
+    # 방법 2: 해시 기반 API (백업)
+    if not segments:
+        try:
+            hash_prefix = hashlib.sha256(video_id.encode()).hexdigest()[:4]
+            url = f"https://sponsor.ajay.app/api/skipSegments/{hash_prefix}"
+            req = urllib.request.Request(
+                url,
+                headers={"User-Agent": "YouTubeAdDetector/1.0"},
+            )
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+            for entry in data:
+                if entry.get("videoID") != video_id:
+                    continue
+                for seg in entry.get("segments", []):
+                    start_sec = seg["segment"][0]
+                    end_sec = seg["segment"][1]
+                    category = seg.get("category", "unknown")
+                    segments.append({
+                        "start_ms": int(start_sec * 1000),
+                        "end_ms": int(end_sec * 1000),
+                        "start_formatted": format_time(int(start_sec * 1000)),
+                        "end_formatted": format_time(int(end_sec * 1000)),
+                        "duration_sec": round(end_sec - start_sec, 1),
+                        "category": category,
+                        "category_label": category_labels.get(category, category),
+                        "votes": seg.get("votes", 0),
+                    })
+        except urllib.error.HTTPError as e:
+            if e.code != 404:
+                raise
+        except Exception:
+            pass
 
     return sorted(segments, key=lambda x: x["start_ms"])
 
