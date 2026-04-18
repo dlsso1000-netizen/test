@@ -1,0 +1,50 @@
+name: ✅ CI (모듈 로드 & 스모크 테스트)
+
+on:
+  push:
+    branches: [main, "feature/**", "claude/**", "genspark_ai_developer"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: 의존성 설치
+        run: npm install
+
+      - name: 모듈 로드 테스트
+        run: |
+          node -e "
+            require('./src/db/database');
+            require('./src/services/youtube');
+            require('./src/services/gemini');
+            require('./src/services/cache');
+            require('./src/services/calculators');
+            require('./src/services/rising');
+            require('./src/services/tiktok');
+            require('./src/services/instagram');
+            require('./src/routes/videos');
+            require('./src/routes/channels');
+            require('./src/routes/analytics');
+            require('./src/routes/sns');
+            require('./src/middleware/rateLimit');
+            console.log('✅ 모든 모듈 로드 OK');
+          "
+
+      - name: 서버 기동 & /api/health 확인
+        run: |
+          node src/server.js &
+          SERVER_PID=$!
+          sleep 3
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/api/health)
+          echo "헬스체크 HTTP $STATUS"
+          kill $SERVER_PID
+          test "$STATUS" = "200"

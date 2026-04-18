@@ -26,9 +26,15 @@ zip -r "${ZIP_NAME}" \
   samples/ \
   docs/ \
   scripts/ \
+  .github/ \
   package.json \
   .gitignore \
+  .dockerignore \
   .env.example \
+  Dockerfile \
+  docker-compose.yml \
+  fly.toml \
+  render.yaml \
   README.md \
   -x "*.env" \
   -x "node_modules/*" \

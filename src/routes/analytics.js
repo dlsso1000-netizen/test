@@ -11,8 +11,34 @@ const express = require('express');
 const youtube = require('../services/youtube');
 const gemini = require('../services/gemini');
 const calc = require('../services/calculators');
+const rising = require('../services/rising');
 
 const router = express.Router();
+
+// ===== 급상승 / 정체 채널 =====
+router.get('/rising-channels', (req, res) => {
+  try {
+    const days = Math.max(1, Math.min(Number(req.query.days) || 7, 90));
+    const limit = Math.max(1, Math.min(Number(req.query.limit) || 50, 200));
+    const metric = (req.query.metric === 'views') ? 'views' : 'subscribers';
+    const items = rising.risingChannels({ days, limit, metric });
+    res.json({ ok: true, days, metric, count: items.length, items });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+router.get('/falling-channels', (req, res) => {
+  try {
+    const days = Math.max(1, Math.min(Number(req.query.days) || 7, 90));
+    const limit = Math.max(1, Math.min(Number(req.query.limit) || 30, 100));
+    const metric = (req.query.metric === 'subscribers') ? 'subscribers' : 'views';
+    const items = rising.fallingChannels({ days, limit, metric });
+    res.json({ ok: true, days, metric, count: items.length, items });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
 
 router.get('/revenue', async (req, res) => {
   try {

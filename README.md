@@ -1,53 +1,57 @@
-# 📊 종합사용툴 v2.0
+# 📊 종합사용툴 v2.1
 
-> YouTube Data API v3 + Google Gemini AI 기반 **글로벌 영상 분석 대시보드**.
-> 국가별 TOP 100 · 채널 심층 분석 · AI 트렌드 요약 · 수익 계산 · 채널 비교를 한 번에.
+> YouTube Data API v3 + Google Gemini AI + TikTok/Instagram 공개 메타까지 담은 **멀티 플랫폼 영상 분석 대시보드**.
+> 국가별 TOP 100 · 급상승 채널 · 채널 심층 분석 · AI 트렌드 · 수익 계산 · 채널 비교 · SNS 프로필 · 북마크 모두 한 번에.
 
 참고 사이트: [Playboard](https://playboard.co) · [Vling](https://vling.net) · [NoxInfluencer](https://kr.noxinfluencer.com)
 
-![version](https://img.shields.io/badge/version-2.0.0-7c5cff) ![node](https://img.shields.io/badge/node-%3E%3D18-339933) ![license](https://img.shields.io/badge/license-MIT-blue)
+![version](https://img.shields.io/badge/version-2.1.0-7c5cff) ![node](https://img.shields.io/badge/node-%3E%3D18-339933) ![license](https://img.shields.io/badge/license-MIT-blue) ![docker](https://img.shields.io/badge/docker-ready-2496ED)
 
 ---
 
-## ✨ 주요 기능
+## ✨ 주요 기능 (v2.1 완성판)
 
 | 메뉴 | 설명 |
 |---|---|
-| 📊 **TOP 100 랭킹** | 12개국 · 17개 카테고리 · 조회수/좋아요/댓글/최신순 정렬 |
+| 📊 **TOP 100 랭킹** | 12개국 · 17개 카테고리 · 4가지 정렬 + Chart.js 바 차트 |
+| 🚀 **급상승 채널** | DB 히스토리 기반 구독자·조회수 증가율 TOP N |
 | 🔍 **검색** | 영상/채널 검색 + 관련성/조회수/최신 정렬 |
-| 📺 **채널 분석** | 프로필 · KPI · 최근 영상 20개 · 히스토리 차트 · AI 분석 |
-| ⚖️ **채널 비교** | 최대 5개 채널 지표 비교 + Gemini AI 비교 리포트 |
-| 💰 **수익 계산기** | CPM · 월 업로드 수 가정으로 월 예상 수익 (3단계 추정) |
+| 📺 **채널 분석** | KPI · 최근 영상 20 · **Chart.js 2축 히스토리** · AI 분석 · ⭐북마크 |
+| ⚖️ **채널 비교** | 비교 표 + 레이더 차트 + Gemini AI 리포트 |
+| 💰 **수익 계산기** | CPM·월 업로드 가정 → 월 예상 수익 3단계 추정 |
 | 🤖 **AI 분석** | Gemini로 트렌드 요약 · 제목 10개 추천 · 채널 리포트 |
+| 📱 **SNS 프로필** | TikTok · Instagram 공개 메타 조회 (교육용) |
+| ⭐ **북마크** | 관심 채널 즐겨찾기 (localStorage, 기기별) |
 
-추가 기능:
-- ⚡ **다중 API 키 로테이션** — 할당량 소진 시 자동 전환
+공통 기능:
+- ⚡ **다중 API 키 로테이션** — 할당량 소진 시 자동 전환 (`YOUTUBE_API_KEY_2/_3/_4/_5`)
 - 💾 **SQLite 히스토리 누적** — 조회할 때마다 구독자/조회수 변화 기록
-- 🧊 **캐시 레이어** — 유닛 절감 (카테고리 24시간, 인기영상 30분)
-- 📦 **일일 크롤 잡** — `npm run crawl` 로 주요 국가 TOP 100 자동 수집
+- 🧊 **캐시 레이어** — 유닛 절감 (카테고리 24h, 인기영상 30m, SNS 15m)
+- 🛡 **Rate limiting** — IP 기반 간이 리미터 (전역 120req/min, 비싼 엔드포인트 30req/min)
+- 📦 **일일 크롤** — `npm run crawl` 또는 GitHub Actions scheduled 자동 수집
+- 🐳 **Docker / Fly.io / Render.com 배포 설정 내장**
 
 ---
 
 ## 🚀 빠른 시작
 
+### A) 로컬 Node.js
 ```bash
-# 1) 저장소 클론
 git clone https://github.com/dlsso1000-netizen/test.git
 cd test
-git pull origin main
-
-# 2) 의존성 설치
 npm install
-
-# 3) 환경변수 설정
-cp .env.example .env
-# .env 파일에 YOUTUBE_API_KEY=AIzaSy... 입력 (필수)
-# (선택) GEMINI_API_KEY=AIzaSy... 입력
-
-# 4) 실행
-npm start
-# → http://localhost:3000 접속
+cp .env.example .env      # YOUTUBE_API_KEY 입력 (필수), GEMINI_API_KEY (선택)
+npm start                 # → http://localhost:3000
 ```
+
+### B) Docker (한 줄 실행)
+```bash
+cp .env.example .env      # 키 입력
+docker compose up --build -d
+# → http://localhost:3000
+```
+
+자세한 배포(Docker / Fly.io / Render.com / systemd)는 [`docs/DEPLOY.md`](docs/DEPLOY.md) 참고.
 
 ---
 
@@ -73,29 +77,46 @@ npm start
 ```
 .
 ├── src/
-│   ├── server.js              # 엔트리 포인트
-│   ├── db/database.js         # SQLite 스키마 + 저장 헬퍼
+│   ├── server.js                 # 엔트리 포인트 + 라우터 + 리미터
+│   ├── db/database.js            # SQLite 스키마 + 저장 헬퍼
 │   ├── services/
-│   │   ├── youtube.js         # YouTube API (다중 키 로테이션)
-│   │   ├── gemini.js          # Google Gemini AI
-│   │   ├── cache.js           # node-cache 래퍼
-│   │   └── calculators.js     # NoxScore / 수익 추정
+│   │   ├── youtube.js            # YouTube API (다중 키 로테이션)
+│   │   ├── gemini.js             # Google Gemini AI
+│   │   ├── cache.js              # node-cache 래퍼
+│   │   ├── calculators.js        # NoxScore / 수익 추정
+│   │   ├── rising.js             # 급상승 채널 계산
+│   │   ├── tiktok.js             # TikTok 공개 메타 스크래퍼
+│   │   └── instagram.js          # Instagram 공개 메타 스크래퍼
+│   ├── middleware/rateLimit.js   # IP 기반 간이 리미터
 │   ├── routes/
-│   │   ├── videos.js          # 영상/트렌딩/카테고리/검색
-│   │   ├── channels.js        # 채널 상세/히스토리/비교
-│   │   └── analytics.js       # 랭킹 · 수익 · AI
-│   └── jobs/dailyCrawl.js     # 일일 크롤 스크립트
+│   │   ├── videos.js             # 영상/트렌딩/카테고리/검색
+│   │   ├── channels.js           # 채널 상세/히스토리/비교
+│   │   ├── analytics.js          # 랭킹 · 수익 · 급상승 · AI
+│   │   └── sns.js                # TikTok / Instagram 라우트
+│   └── jobs/dailyCrawl.js        # 일일 크롤 스크립트
 ├── public/
-│   ├── index.html             # SPA 진입점
-│   ├── css/style.css          # 디자인 시스템
+│   ├── index.html                # SPA 진입점 (+ Chart.js CDN)
+│   ├── css/style.css             # 디자인 시스템
 │   └── js/
-│       ├── common.js          # 포맷/유틸
-│       └── app.js             # 해시 라우터 + 7개 페이지
-├── data/                      # SQLite (.gitignore)
-├── samples/                   # 샘플 JSON
-├── docs/cursor-share.md       # Cursor 협업 공유 노트
-├── scripts/make-zip.sh        # ZIP 패키징
-└── .env.example               # 환경변수 템플릿
+│       ├── common.js             # 포맷/유틸
+│       ├── bookmarks.js          # localStorage 북마크 모듈
+│       └── app.js                # 해시 라우터 + 10개 페이지
+├── .github/workflows/
+│   ├── ci.yml                    # 모듈 로드 + 헬스체크
+│   ├── daily-crawl.yml           # 매일 KST 17:30 크롤
+│   └── package-zip.yml           # ZIP 아티팩트 빌드
+├── data/                         # SQLite (.gitignore)
+├── samples/                      # 샘플 JSON
+├── docs/
+│   ├── cursor-share.md           # Cursor 협업 공유 노트
+│   ├── DEPLOY.md                 # 배포 가이드 (Docker/Fly/Render)
+│   └── SNS-NOTES.md              # TikTok/IG 스크래퍼 주의사항
+├── Dockerfile                    # multi-stage 빌드
+├── docker-compose.yml            # 볼륨 + 헬스체크 포함
+├── fly.toml                      # Fly.io 배포
+├── render.yaml                   # Render.com 배포
+├── scripts/make-zip.sh           # ZIP 패키징
+└── .env.example                  # 환경변수 템플릿
 ```
 
 ---
@@ -121,11 +142,21 @@ npm start
 
 ### 분석 / 유틸
 - `GET /api/revenue?id=...&cpm=1.5&uploads=4` — 월 수익 추정
+- `GET /api/rising-channels?metric=subscribers|views&days=7&limit=50` — 급상승 TOP N
+- `GET /api/falling-channels?metric=...&days=...` — 정체/감소 채널
 - `POST /api/ai/analyze-channel` `{channelId}`
 - `POST /api/ai/analyze-trend` `{region,categoryId?}`
 - `POST /api/ai/suggest-titles` `{topic,style}`
 - `POST /api/ai/compare` `{ids:[A,B,...]}`
 - `POST /api/cache/flush` — 캐시 비우기
+
+### SNS (공개 메타, 교육용)
+- `GET /api/tiktok/profile/:username` — TikTok 프로필
+- `GET /api/tiktok/tag/:tag` — TikTok 해시태그
+- `GET /api/instagram/profile/:username` — Instagram 프로필
+- `GET /api/instagram/tag/:tag` — Instagram 해시태그
+
+> ⚠ SNS 엔드포인트는 공식 API가 아니며, 각 플랫폼의 공개 메타데이터만 파싱합니다. `docs/SNS-NOTES.md` 참고.
 
 ---
 

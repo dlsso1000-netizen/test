@@ -1,0 +1,19 @@
+{
+  "_description": "샘플: /api/tiktok/profile/:username 응답 (2026-04-18 샌드박스 테스트)",
+  "_note": "공개 메타데이터 + SIGI JSON만 파싱. 구조 변경 시 stats가 비어 있을 수 있음.",
+  "ok": true,
+  "platform": "tiktok",
+  "username": "mrbeast",
+  "url": "https://www.tiktok.com/@mrbeast",
+  "title": "@mrbeast",
+  "description": "",
+  "thumbnail": "",
+  "stats": {
+    "followers": 126000000,
+    "following": 351,
+    "hearts": 1300000000,
+    "videos": 457,
+    "verified": true
+  },
+  "fetchedAt": "2026-04-18T11:25:29.116Z"
+}

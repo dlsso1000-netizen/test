@@ -1,0 +1,30 @@
+# 종합사용툴 v2.1 — docker-compose
+# 사용법:
+#   1) cp .env.example .env  (키 입력)
+#   2) docker compose up --build -d
+#   3) http://localhost:3000
+version: "3.9"
+
+services:
+  app:
+    build: .
+    image: jonghap-tool:2.1
+    container_name: jonghap-tool
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    volumes:
+      - jonghap-data:/app/data
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>r.ok?process.exit(0):process.exit(1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  jonghap-data:

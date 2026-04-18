@@ -1,0 +1,27 @@
+# Render.com 배포 설정 (참고용)
+# 1) https://render.com 에서 New Web Service 생성 → GitHub 연결
+# 2) Environment 에 YOUTUBE_API_KEY, GEMINI_API_KEY 입력
+# 3) 자동 배포됨
+services:
+  - type: web
+    name: jonghap-tool
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node src/server.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: DEFAULT_REGION
+        value: KR
+      - key: YOUTUBE_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+    disk:
+      name: jonghap-data
+      mountPath: /opt/render/project/src/data
+      sizeGB: 1

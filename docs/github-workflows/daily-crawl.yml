@@ -1,0 +1,47 @@
+name: 📊 종합사용툴 일일 크롤
+
+# 매일 KST 17:30 (= UTC 08:30) 에 실행 + 수동 실행도 가능
+on:
+  schedule:
+    - cron: "30 8 * * *"
+  workflow_dispatch:
+    inputs:
+      regions:
+        description: "수집 대상 국가 (쉼표 구분, 예: KR,US,JP)"
+        required: false
+        default: "KR,US,JP"
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Node.js 세팅
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: 의존성 설치
+        run: npm install
+
+      - name: 크롤 실행
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          YOUTUBE_API_KEY_2: ${{ secrets.YOUTUBE_API_KEY_2 }}
+          YOUTUBE_API_KEY_3: ${{ secrets.YOUTUBE_API_KEY_3 }}
+          CRAWL_REGIONS: ${{ github.event.inputs.regions || 'KR,US,JP' }}
+        run: node src/jobs/dailyCrawl.js
+
+      - name: 크롤 결과 아티팩트 업로드 (JSON 스냅샷)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crawl-snapshot-${{ github.run_id }}
+          path: |
+            data/*.db
+            data/*.json
+          retention-days: 14
+          if-no-files-found: ignore

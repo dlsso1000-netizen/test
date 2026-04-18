@@ -1,0 +1,31 @@
+name: 📦 종합사용툴 ZIP 패키징
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "public/**"
+      - "package.json"
+      - "scripts/make-zip.sh"
+      - ".env.example"
+      - "README.md"
+  workflow_dispatch:
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ZIP 생성
+        run: |
+          sudo apt-get update && sudo apt-get install -y zip
+          bash scripts/make-zip.sh
+
+      - name: 아티팩트 업로드
+        uses: actions/upload-artifact@v4
+        with:
+          name: 종합사용툴
+          path: 종합사용툴.zip
+          retention-days: 30
