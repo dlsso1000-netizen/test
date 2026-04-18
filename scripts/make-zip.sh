@@ -34,7 +34,9 @@ zip -r "${ZIP_NAME}" \
   -x "node_modules/*" \
   -x "*.zip" \
   -x ".git/*" \
-  -x "*.DS_Store"
+  -x "*.DS_Store" \
+  -x "data/*.db*" \
+  -x "package-lock.json"
 
 if [ -f "${ZIP_NAME}" ]; then
   SIZE=$(du -h "${ZIP_NAME}" | cut -f1)

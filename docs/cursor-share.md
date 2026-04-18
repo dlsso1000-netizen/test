@@ -1,145 +1,168 @@
-# 📋 Cursor 공유용 - 종합사용툴 프로젝트 현황
+# 📋 Cursor 공유용 - 종합사용툴 v2.0 전면 업그레이드 완료
 
-> **한 줄 요약**: 종합사용툴 v1.0 초기 세팅 완료 (YouTube API v3 + 대시보드), `.env`에 `YOUTUBE_API_KEY` 설정 후 `npm start` 실행
-
-**브랜치**: `main`
-**최근 커밋**: 초기 프로젝트 세팅 (종합사용툴 v1.0)
-**작업 환경**: GenSpark → 같은 레포 push
-
----
-
-## 🎯 이번 작업에서 한 것
-
-### ✅ 완료
-1. **프로젝트 구조 생성**
-   - `src/server.js` - Express 서버 + YouTube API 래퍼
-   - `public/index.html` - 대시보드 UI (국가 선택 + 영상 검색)
-   - `package.json` - 의존성 정의
-   - `.env.example` - 환경변수 템플릿
-   - `.gitignore` - 민감정보/빌드 결과 제외
-
-2. **API 엔드포인트 (4개)**
-   - `GET /api/health` - 서버 + API 키 상태 확인
-   - `GET /api/trending?region=KR` - 국가별 인기 영상 TOP 50 (1 유닛)
-   - `GET /api/channel/:channelId` - 채널 상세 정보 (1 유닛)
-   - `GET /api/search?q=키워드` - 영상 검색 (100 유닛 🔥 주의)
-
-3. **ZIP 패키징**
-   - `scripts/make-zip.sh` - 로컬에서 `종합사용툴.zip` 생성
-
-4. **문서화**
-   - `README.md` - 설치/실행 가이드
-   - `docs/cursor-share.md` - 이 파일
-
----
-
-## 🔑 환경변수 필요
-
-`.env` 파일에 다음 입력:
-```
-YOUTUBE_API_KEY=AIzaSy...        # 필수
-GEMINI_API_KEY=AIzaSy...         # 선택 (AI 분석용)
-PORT=3000                         # 선택 (기본 3000)
-DEFAULT_REGION=KR                 # 선택 (기본 KR)
-```
-
-**API 키 발급처**:
-- YouTube: https://console.cloud.google.com/
-- Gemini: https://aistudio.google.com/apikey
-
----
-
-## 🧪 로컬 테스트 방법
-
-```bash
-# 1. 클론
-git clone https://github.com/dlsso1000-netizen/test.git
-cd test
-
-# 2. 설치
-npm install
-
-# 3. 환경변수 설정
-cp .env.example .env
-# .env 파일 열어서 YOUTUBE_API_KEY 값 입력
-
-# 4. 실행
-npm start
-
-# 5. 브라우저
-# http://localhost:3000
-```
-
----
-
-## 📝 Cursor에서 봐야 할 파일
-
-| 파일 | 역할 | 수정 시 주의 |
-|---|---|---|
-| `src/server.js` | 메인 서버, API 라우트 | YouTube API 호출 로직 |
-| `public/index.html` | 대시보드 UI | 디자인/UX 개선 |
-| `package.json` | 의존성 | 패키지 추가 시 `npm install` 필수 |
-| `.env.example` | 환경변수 템플릿 | 키 이름만, 값 X |
-| `scripts/make-zip.sh` | ZIP 패키징 | 파일명 변경 시 수정 |
-
----
-
-## 🚧 다음 작업 후보 (TODO)
-
-### Phase 2 - 데이터 수집 자동화
-- [ ] 매일 자정 국가별 TOP 100 수집 → `data/` 폴더에 JSON 저장
-- [ ] SQLite 또는 JSON DB로 히스토리 추적
-- [ ] 구독자/조회수 추이 그래프 (Chart.js)
-
-### Phase 3 - Gemini AI 연동
-- [ ] `/api/analyze` 엔드포인트 추가
-- [ ] "이 채널 성공 요인 분석" AI 리포트
-- [ ] 영상 제목/썸네일 추천 기능
-
-### Phase 4 - 플랫폼 확장
-- [ ] Instagram 스크래핑 (NoxInfluencer 스타일)
-- [ ] TikTok 스크래핑
-- [ ] 다중 플랫폼 통합 대시보드
-
----
-
-## 🐛 알려진 이슈
-
-### 이슈 1: `.env` 없이 실행 시 500 에러
-- **증상**: `/api/trending` 호출 시 "YOUTUBE_API_KEY가 설정되지 않았습니다"
-- **해결**: `.env` 파일 생성 + 키 입력
-- **재현 파일**: `samples/kie-error-example.json` (향후 추가)
-
-### 이슈 2: 검색 기능 유닛 소모 큼
-- **증상**: `/api/search` 1회 = 100 유닛
-- **해결**: 검색 결과 캐싱 (Phase 2에서 구현 예정)
-
----
-
-## 🔗 참고 링크
+> **한 줄 요약**: v2.0 대규모 개편 완료 — TOP 100 / 카테고리 / 채널상세(+히스토리 그래프) / 검색 / 수익계산 / 채널비교 / Gemini AI(트렌드·채널·제목) 모든 MVP 기능 구현, SQLite 히스토리 + 다중 키 로테이션 + 캐시 내장.
 
 - **레포**: https://github.com/dlsso1000-netizen/test
-- **YouTube API 문서**: https://developers.google.com/youtube/v3/docs
-- **Gemini API 문서**: https://ai.google.dev/docs
-- **참고 서비스**:
-  - https://kr.noxinfluencer.com/
-  - https://playboard.co/
-  - https://vling.net/
+- **브랜치**: `main`
+- **작업 환경**: GenSpark 샌드박스 → 같은 원격 push
+- **로컬 실행**: `npm install && cp .env.example .env` → 키 입력 → `npm start` → http://localhost:3000
 
 ---
 
-## 📦 ZIP 다운로드 (`종합사용툴.zip`)
+## 🚀 v2.0 신규/업그레이드 항목 (이번 커밋)
 
-### 로컬 빌드 (추천)
-```bash
-bash scripts/make-zip.sh
-# → 프로젝트 루트에 "종합사용툴.zip" 생성
+### 백엔드 구조 재편
+- `src/server.js` — 엔트리 포인트 재작성 (라우터 분리, 에러 핸들러)
+- `src/services/youtube.js` — YouTube Data API 래퍼 **+ 다중 키 로테이션** (`YOUTUBE_API_KEY`, `_2`, `_3` …)
+- `src/services/gemini.js` — Google Gemini AI 연동 (gemini-1.5-flash)
+- `src/services/cache.js` — node-cache 기반 캐시 래퍼 (유닛 절감)
+- `src/services/calculators.js` — 평균 조회수 / 참여도 / NoxScore / 월 수익 추정
+- `src/db/database.js` — SQLite (better-sqlite3) 스키마 + 저장 헬퍼
+- `src/routes/videos.js` · `channels.js` · `analytics.js` — API 라우트 분리
+- `src/jobs/dailyCrawl.js` — 주요 국가 TOP 100 일일 크롤 스크립트
+
+### 새 API 엔드포인트
+| 경로 | 설명 | 유닛 |
+|---|---|---|
+| `GET /api/health` | 상태 + 키/캐시 | 0 |
+| `GET /api/trending?region=KR[&categoryId=10]` | TOP 50 | 1 |
+| `GET /api/top100?region=KR[&categoryId=10]` | TOP 100 | 2 |
+| `GET /api/ranking?region=KR` | 랭킹(정제된 지표 포함) | 2 |
+| `GET /api/categories?region=KR` | 카테고리 목록 | 1 (24h 캐시) |
+| `GET /api/video/:id` | 영상 상세 | 1 |
+| `GET /api/search?q=...&type=video|channel&region=KR&order=viewCount` | 검색 | **100** |
+| `GET /api/channel/:id` / `/api/handle/:handle` | 채널 상세 | 1 |
+| `GET /api/channel/:id/videos` | 채널 최근 영상 20 | ≈2 |
+| `GET /api/channel/:id/history` | 로컬 DB 히스토리 | 0 |
+| `GET /api/channels?ids=A,B,C` | 배치 조회 | 1 |
+| `GET /api/compare?ids=A,B,C` | 비교 지표 표 | 1 |
+| `GET /api/revenue?id=...&cpm=1.5&uploads=4` | 수익 계산 | 1 |
+| `POST /api/ai/analyze-channel {channelId}` | AI 채널 분석 | 2 + Gemini |
+| `POST /api/ai/analyze-trend {region}` | AI 트렌드 요약 | 1 + Gemini |
+| `POST /api/ai/suggest-titles {topic,style}` | AI 제목 10개 | Gemini |
+| `POST /api/ai/compare {ids:[...]}` | AI 채널 비교 리포트 | 1 + Gemini |
+| `POST /api/cache/flush` | 캐시 비우기 | 0 |
+
+### 프론트엔드 (SPA)
+- `public/index.html` — 단일 진입점, 해시 라우팅
+- `public/js/app.js` — 라우터 + 7개 페이지 렌더러
+- `public/js/common.js` — 유틸 (숫자/시간/카테고리)
+- `public/css/style.css` — 다크 글래스모피즘 디자인
+
+### 페이지 구성
+1. **홈** (`#/`) — API 상태 KPI, 기능 카드
+2. **TOP 100 랭킹** (`#/ranking`) — 12개국 · 카테고리 · 정렬 4가지
+3. **검색** (`#/search`) — 영상/채널 · 정렬 옵션
+4. **채널 분석** (`#/channel?id=UCxxx` / `?handle=xxx`) — 프로필·KPI·최근 영상 20개·**히스토리 SVG 차트**·AI 분석 버튼
+5. **채널 비교** (`#/compare`) — 다채널 표 + AI 비교 리포트
+6. **수익 계산기** (`#/calculator`) — 채널 ID + CPM + 월 업로드
+7. **AI 분석** (`#/ai`) — 트렌드 요약 + 제목 추천
+
+---
+
+## 🔑 환경변수
+
+```ini
+YOUTUBE_API_KEY=AIzaSy...       # 필수
+YOUTUBE_API_KEY_2=              # 선택 (자동 로테이션)
+YOUTUBE_API_KEY_3=              # 선택
+GEMINI_API_KEY=AIzaSy...        # 선택 (AI 기능)
+PORT=3000
+DEFAULT_REGION=KR
+CRAWL_REGIONS=KR,US,JP
 ```
 
-### GitHub에서 소스 다운로드
-- 저장소 우측 상단 "Code → Download ZIP" 클릭
-- 기본 이름: `test-main.zip` → `종합사용툴.zip`으로 변경해 사용
+- `.env`는 **절대 커밋 금지** (`.gitignore`에 포함됨)
+- 다중 키는 `YOUTUBE_API_KEY_2` 식으로 넣으면 403 quotaExceeded 시 자동 전환
 
 ---
 
-**마지막 업데이트**: 2026-04-18 (초기 세팅)
+## 🗄️ 데이터베이스
+
+SQLite 파일: `data/jonghap.db` (커밋 제외)
+
+- `channels` · `videos` · `channel_history` · `ranking_snapshot`
+- 호출 시마다 히스토리 자동 누적 → `/api/channel/:id/history` 로 조회, 차트 렌더링
+
+---
+
+## ⏰ 일일 크롤
+
+```bash
+node src/jobs/dailyCrawl.js
+# or
+npm run crawl
+```
+
+- 기본: KR, US, JP TOP 100 수집 → DB 누적
+- 유닛 소모: 국가당 약 10~15 유닛 (TOP 100 2 + 채널 배치 조회)
+- cron, GitHub Actions, systemd timer 등으로 1일 1회 실행 권장
+
+---
+
+## 🧪 빠른 검증 (로컬)
+
+```bash
+npm install
+cp .env.example .env   # 키 입력
+npm start              # http://localhost:3000
+
+# API 테스트
+curl http://localhost:3000/api/health
+curl "http://localhost:3000/api/top100?region=KR"
+curl "http://localhost:3000/api/channel/UC_x5XG1OV2P6uZZ5FSM9Ttw"   # Google Developers
+```
+
+---
+
+## 📦 ZIP 패키징
+
+- 로컬: `bash scripts/make-zip.sh` → `종합사용툴.zip`
+- GitHub Actions: `.github/workflows/package-zip.yml` (별도 커밋 필요 — 권한 이슈로 현재 비활성)
+
+---
+
+## 🧠 Cursor에서 볼 핵심 파일
+
+1. `src/server.js` — 시작점
+2. `src/services/youtube.js` — **다중 키 로테이션** 로직, 이해해두면 유용
+3. `src/services/gemini.js` — 프롬프트 템플릿 커스터마이즈 지점
+4. `src/services/calculators.js` — NoxScore/수익 추정 공식 조정 가능
+5. `src/routes/analytics.js` — AI 라우트 + 랭킹 지표
+6. `public/js/app.js` — SPA 라우터 + 7개 페이지
+7. `public/css/style.css` — 디자인 토큰 (`:root`)
+
+---
+
+## ⚠️ 아직 안 된 것 / Phase 3 후보
+
+- [ ] Chart.js 기반 고급 차트 (현재는 의존성 없는 간이 SVG)
+- [ ] Instagram / TikTok 공식 API 혹은 스크래퍼 — 플랫폼 정책 검토 필요
+- [ ] 사용자 로그인 / 관심채널 북마크 기능
+- [ ] 일일 크롤 자동화(cron 셋업)
+- [ ] Docker / Vercel / Cloudflare Pages 배포
+- [ ] `/api/rising-channels` (구독자 급상승 채널 검출)
+
+---
+
+## 🐛 에러가 나면?
+
+**민감정보 마스킹 후** `samples/` 폴더에 JSON으로 저장하고 커밋해 주세요:
+```
+samples/error-YYYYMMDD.json
+{
+  "endpoint": "/api/xxx",
+  "status": 500,
+  "message": "(에러 메시지)",
+  "requestParams": { ... }
+}
+```
+그리고 `docs/cursor-share.md` 맨 위에 한 줄 요약을 추가한 뒤 push 해 주시면 Cursor → GenSpark 왕복이 쉽습니다.
+
+---
+
+## 🔗 참고
+
+- 참고 사이트: Playboard · Vling · NoxInfluencer
+- YouTube Data API v3 문서: https://developers.google.com/youtube/v3
+- Gemini API 문서: https://ai.google.dev/gemini-api/docs

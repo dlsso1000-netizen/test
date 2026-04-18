@@ -1,0 +1,29 @@
+{
+  "_description": "API 응답 샘플 — /api/channel/:id, 민감정보 없음",
+  "_generatedAt": "2026-04-18",
+  "_note": "실제 API 호출 시 이 형태의 JSON이 돌아옵니다. 키는 마스킹 처리됨.",
+  "ok": true,
+  "item": {
+    "id": "UCxxxxxxxxxxxxxxxxxx",
+    "snippet": {
+      "title": "예시 채널",
+      "description": "채널 설명입니다.",
+      "publishedAt": "2020-01-01T00:00:00Z",
+      "country": "KR",
+      "thumbnails": {
+        "default": { "url": "https://i.ytimg.com/..." },
+        "high": { "url": "https://i.ytimg.com/..." }
+      }
+    },
+    "statistics": {
+      "viewCount": "123456789",
+      "subscriberCount": "1234567",
+      "videoCount": "456"
+    },
+    "contentDetails": {
+      "relatedPlaylists": {
+        "uploads": "UUxxxxxxxxxxxxxxxxxx"
+      }
+    }
+  }
+}

@@ -1,25 +1,32 @@
 {
   "name": "jonghap-tool",
-  "version": "1.0.0",
-  "description": "종합사용툴 - YouTube 분석 대시보드 (YouTube Data API v3 + Gemini AI)",
+  "version": "2.0.0",
+  "description": "종합사용툴 - YouTube/SNS 분석 대시보드 (YouTube Data API v3 + Gemini AI)",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
     "dev": "node src/server.js",
     "build": "echo 'No build step required'",
-    "package": "bash scripts/make-zip.sh"
+    "package": "bash scripts/make-zip.sh",
+    "crawl": "node src/jobs/dailyCrawl.js"
   },
   "keywords": [
     "youtube",
     "analytics",
     "dashboard",
     "gemini",
-    "ai"
+    "ai",
+    "tiktok",
+    "instagram",
+    "ranking"
   ],
   "author": "dlsso1000-netizen",
   "license": "MIT",
   "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "better-sqlite3": "^11.3.0",
     "dotenv": "^16.4.5",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "node-cache": "^5.1.2"
   }
 }
