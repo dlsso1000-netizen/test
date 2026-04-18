@@ -1,0 +1,25 @@
+{
+  "name": "jonghap-tool",
+  "version": "1.0.0",
+  "description": "종합사용툴 - YouTube 분석 대시보드 (YouTube Data API v3 + Gemini AI)",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node src/server.js",
+    "build": "echo 'No build step required'",
+    "package": "bash scripts/make-zip.sh"
+  },
+  "keywords": [
+    "youtube",
+    "analytics",
+    "dashboard",
+    "gemini",
+    "ai"
+  ],
+  "author": "dlsso1000-netizen",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
+}
